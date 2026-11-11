@@ -1,12 +1,12 @@
 # Convenience workflow if project is uploaded to GitHub as one ZIP from a phone.
-# This workflow requires FoldReaderNative.zip at the root of your repository.
+# This workflow requires FoldReaderNative_Ready_for_GitHub.zip at the root of your repository.
 name: Build APK from uploaded ZIP
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'FoldReaderNative.zip'
+      - 'FoldReaderNative_Ready_for_GitHub.zip'
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
       - name: Extract project uploaded from phone
         run: |
           mkdir -p project
-          unzip -q FoldReaderNative.zip -d project
+          unzip -q FoldReaderNative_Ready_for_GitHub.zip -d project
           test -f project/FoldReaderNative/app/build.gradle.kts
       - name: Build debug APK
         working-directory: project/FoldReaderNative
