@@ -31,6 +31,8 @@ jobs:
           mkdir -p project
           unzip -q FoldReaderNative_Ready_for_GitHub.zip -d project
           test -f project/FoldReaderNative/app/build.gradle.kts
+          # Use the bundled launcher icon when the source references a missing drawable.
+          sed -i 's|@drawable/ic_book_launcher_1794373273989|@mipmap/ic_launcher|g' project/FoldReaderNative/app/src/main/res/drawable/ic_launcher_foreground.xml
       - name: Build debug APK
         working-directory: project/FoldReaderNative
         run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
