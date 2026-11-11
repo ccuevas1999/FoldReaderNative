@@ -35,6 +35,12 @@ jobs:
           sed -i 's|@drawable/ic_book_launcher_1794373273989|@mipmap/ic_launcher|g' project/FoldReaderNative/app/src/main/res/drawable/ic_launcher_foreground.xml
           # Compose restricted gesture scopes cannot call scrollToPage directly.
           sed -i 's/latestPagerState.scrollToPage(target)$/coroutineScope.launch { latestPagerState.scrollToPage(target) }/' project/FoldReaderNative/app/src/main/java/com/example/reader/BookTurnPager.kt
+      - name: Apply native fullscreen reader and formatting fixes
+        run: |
+          cp native-patches/MainActivity.kt project/FoldReaderNative/app/src/main/java/com/example/MainActivity.kt
+          mkdir -p project/FoldReaderNative/app/src/main/assets
+          cp native-patches/fold_reader.html project/FoldReaderNative/app/src/main/assets/fold_reader.html
+          printf '\\ndependencies { implementation("androidx.webkit:webkit:1.12.1") }\\n' >> project/FoldReaderNative/app/build.gradle.kts
       - name: Build debug APK
         working-directory: project/FoldReaderNative
         run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
