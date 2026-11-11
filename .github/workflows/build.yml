@@ -40,7 +40,7 @@ jobs:
           cp native-patches/MainActivity.kt project/FoldReaderNative/app/src/main/java/com/example/MainActivity.kt
           mkdir -p project/FoldReaderNative/app/src/main/assets
           cp native-patches/fold_reader.html project/FoldReaderNative/app/src/main/assets/fold_reader.html
-          printf '\\ndependencies { implementation("androidx.webkit:webkit:1.12.1") }\\n' >> project/FoldReaderNative/app/build.gradle.kts
+          echo 'dependencies { implementation("androidx.webkit:webkit:1.12.1") }' >> project/FoldReaderNative/app/build.gradle.kts
       - name: Build debug APK
         working-directory: project/FoldReaderNative
         run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
