@@ -1,0 +1,40 @@
+# Convenience workflow if project is uploaded to GitHub as one ZIP from a phone.
+# This workflow requires FoldReaderNative.zip at the root of your repository.
+name: Build APK from uploaded ZIP
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'FoldReaderNative.zip'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+      - name: Install Android SDK 35
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Extract project uploaded from phone
+        run: |
+          mkdir -p project
+          unzip -q FoldReaderNative.zip -d project
+          test -f project/FoldReaderNative/app/build.gradle.kts
+      - name: Build debug APK
+        working-directory: project/FoldReaderNative
+        run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FoldReader-Native-APK
+          path: project/FoldReaderNative/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
