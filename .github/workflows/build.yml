@@ -62,6 +62,8 @@ jobs:
           cp native-patches/v18.css project/FoldReaderNative/app/src/main/assets/v18.css
           cp native-patches/v19.js project/FoldReaderNative/app/src/main/assets/v19.js
           cp native-patches/v19.css project/FoldReaderNative/app/src/main/assets/v19.css
+          cp native-patches/v20.js project/FoldReaderNative/app/src/main/assets/v20.js
+          cp native-patches/v20.css project/FoldReaderNative/app/src/main/assets/v20.css
           python - <<'PYCODE'
           from pathlib import Path
           p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
@@ -105,6 +107,17 @@ jobs:
               html=html.replace('</head>', '<link rel="stylesheet" href="v19.css"></head>',1)
           if 'v19.js' not in html:
               html=html.replace('</body></html>', '<script src="v19.js"></script></body></html>',1)
+          if 'v20.css' not in html:
+              html=html.replace('</head>', '<link rel="stylesheet" href="v20.css"></head>',1)
+          if 'v20.js' not in html:
+              html=html.replace('</body></html>', '<script src="v20.js"></script></body></html>',1)
+          # Measured Docs pagination used to discard image-only blocks when an
+          # illustration did not fit below existing text. Retain the picture,
+          # and move it to the next page if necessary instead of dropping it.
+          image_before="async function fitBlock(block){let text=block.textContent||'',start=0;if(!text.trim())return;"
+          image_after="async function fitBlock(block){let text=block.textContent||'',start=0;if(!text.trim()){if(block.tagName==='IMG'||block.querySelector('img')){body.append(block.cloneNode(true));if(!fits()&&body.children.length>1){body.lastElementChild.remove();await finish();body.append(block.cloneNode(true));}}return;}"
+          assert image_before in html, 'Could not patch image-only pagination'
+          html=html.replace(image_before,image_after,1)
           # Respect forced breaks recognized by the v15 sanitizer and chapter markup.
           before="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';"
           after="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';if(b.tagName==='FOLD-PAGEBREAK'){if([...body.children].some(n=>n.textContent.trim()||n.querySelector('img,table'))){await finish()}else{body.replaceChildren()}continue;}"
