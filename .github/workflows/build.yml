@@ -73,8 +73,24 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.FOLD_READER_KEYSTORE_PASSWORD }}
         run: |
           if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
-            printf '%s' "$KEYSTORE_B64" | base64 -d > project/FoldReaderNative/foldreader.p12
-            chmod 600 project/FoldReaderNative/foldreader.p12
+            python - <<'PYCODE'
+            import os, base64, hashlib, pathlib, sys
+            text=os.environ['KEYSTORE_B64']
+            try:
+                decoded=base64.b64decode(''.join(text.split()),validate=True)
+            except Exception:
+                print('::error::FOLD_READER_KEYSTORE_BASE64 is not valid base64. Copy only the long value from GitHub_Secrets.txt.')
+                sys.exit(1)
+            expected='b6823a08ae04949fc8014695f3c9e80662f340d3d135f4d6eabf29a56df65056'
+            if hashlib.sha256(decoded).hexdigest()!=expected:
+                print('::error::The keystore secret does not match the original signing certificate. Re-copy the entire long value from GitHub_Secrets.txt; do not upload the ZIP.')
+                print('Received decoded byte count:',len(decoded),'; expected: 3536')
+                sys.exit(1)
+            target=pathlib.Path('project/FoldReaderNative/foldreader.p12')
+            target.write_bytes(decoded)
+            target.chmod(0o600)
+            print('Permanent signing certificate data validated.')
+            PYCODE
             echo "FOLD_SIGNING_PATH=$GITHUB_WORKSPACE/project/FoldReaderNative/foldreader.p12" >> "$GITHUB_ENV"
             echo "FOLD_SIGNING_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
             echo "FOLD_SIGNING_STATUS=stable" >> "$GITHUB_ENV"
