@@ -51,9 +51,12 @@ class LocalImporter(private val context: Context) {
             } ?: error("Unable to open the selected file")
             val html = if (type == "pdf") pdfHtml(id, source) else epubHtml(id, source)
             htmlFile(id).writeText(html, Charsets.UTF_8)
+            val cover = if (type == "pdf") "https://$appDomain/pdf/$id/0.png"
+                else findEpubCover(id, source)
             return JSONObject().put("id", id).put("type", type)
                 .put("title", name.substringBeforeLast('.').take(110))
                 .put("url", "/docs/" + id + ".html")
+                .put("cover", cover ?: "")
         } catch (e: Exception) {
             source.delete()
             throw e
@@ -172,6 +175,51 @@ class LocalImporter(private val context: Context) {
             append("</body></html>")
         }
     }
+    // Respect OPF cover-image metadata and EPUB 2 cover id; otherwise choose
+    // a cover-looking artwork filename. All artwork stays in the local ZIP.
+    private fun findEpubCover(id: String, source: File): String? = runCatching {
+        ZipFile(source).use { zip ->
+            val rootEntry = zip.getEntry("META-INF/container.xml") ?: return@use null
+            val container = parseXml(zip.getInputStream(rootEntry).bufferedReader().readText())
+            val rootFiles = container.getElementsByTagNameNS("*", "rootfile")
+            if (rootFiles.length == 0) return@use null
+            val opfPath = (rootFiles.item(0) as org.w3c.dom.Element).getAttribute("full-path")
+            val opfEntry = zip.getEntry(opfPath) ?: return@use null
+            val opf = parseXml(zip.getInputStream(opfEntry).bufferedReader().readText())
+            val coverMeta = opf.getElementsByTagNameNS("*", "meta")
+            var metaId = ""
+            for (i in 0 until coverMeta.length) {
+                val m = coverMeta.item(i) as org.w3c.dom.Element
+                if (m.getAttribute("name").equals("cover", true)) {
+                    metaId = m.getAttribute("content"); break
+                }
+            }
+            val items = opf.getElementsByTagNameNS("*", "item")
+            val base = opfPath.substringBeforeLast('/', "")
+            val images = mutableListOf<Pair<String, Int>>()
+            for (i in 0 until items.length) {
+                val el = items.item(i) as org.w3c.dom.Element
+                val type = el.getAttribute("media-type").lowercase()
+                if (type !in listOf("image/png", "image/jpeg", "image/webp", "image/gif")) continue
+                val path = safeMember(base, el.getAttribute("href"))
+                val entry = zip.getEntry(path) ?: continue
+                if (entry.size <= 0 || entry.size > 12L * 1024 * 1024) continue
+                val itemId = el.getAttribute("id")
+                val props = el.getAttribute("properties")
+                val filename = path.substringAfterLast('/').lowercase()
+                val rank = when {
+                    props.split(" ").contains("cover-image") -> 0
+                    itemId == metaId && metaId.isNotBlank() -> 1
+                    filename.contains("cover") || itemId.contains("cover", true) -> 2
+                    else -> 9
+                }
+                images.add(path to rank)
+            }
+            val selected = images.minByOrNull { it.second }?.takeIf { it.second <= 2 }?.first
+            selected?.let { "https://$appDomain/epub/$id/" + Uri.encode(it, "/") }
+        }
+    }.getOrNull()
+
     fun epubImage(path: String): WebResourceResponse? {
         if (path.length < 34 || path[32] != '/') return null
         val id = path.substring(0, 32)
