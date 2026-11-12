@@ -40,6 +40,10 @@ jobs:
           cp native-patches/MainActivity.kt project/FoldReaderNative/app/src/main/java/com/example/MainActivity.kt
           mkdir -p project/FoldReaderNative/app/src/main/assets
           cp native-patches/fold_reader.html project/FoldReaderNative/app/src/main/assets/fold_reader.html
+          cp native-patches/v10.js project/FoldReaderNative/app/src/main/assets/v10.js
+          cp native-patches/v10.css project/FoldReaderNative/app/src/main/assets/v10.css
+          python native-patches/generate_sound.py project/FoldReaderNative/app/src/main/assets/page_turn.wav
+          sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode"/' project/FoldReaderNative/app/src/main/AndroidManifest.xml
           echo 'dependencies { implementation("androidx.webkit:webkit:1.12.1") }' >> project/FoldReaderNative/app/build.gradle.kts
       - name: Build debug APK
         working-directory: project/FoldReaderNative
