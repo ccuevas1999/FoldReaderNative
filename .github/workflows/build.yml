@@ -79,13 +79,20 @@ jobs:
             echo "FOLD_SIGNING_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
             echo "FOLD_SIGNING_STATUS=stable" >> "$GITHUB_ENV"
           else
-            echo "FOLD_SIGNING_STATUS=temporary" >> "$GITHUB_ENV"
+            echo "::error::Permanent signing secrets are missing. No updateable APK will be produced."
+            exit 1
           fi
       - name: Build debug APK
         working-directory: project/FoldReaderNative
         run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
+      - name: Verify the APK signature
+        run: |
+          APK=$(find project/FoldReaderNative/app/build/outputs/apk/debug -name '*.apk' -print -quit)
+          test -n "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          echo "Permanent signing verification passed."
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FOLD_SIGNING_STATUS == 'stable' && 'FoldReader-Stable-Updateable-APK' || 'FoldReader-Temporary-Test-APK' }}
+          name: FoldReader-Stable-Updateable-APK
           path: project/FoldReaderNative/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
