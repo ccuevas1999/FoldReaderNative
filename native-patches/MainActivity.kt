@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
-            settings.allowContentAccess = false
+            settings.allowContentAccess = true // Required for Android-picked image content URIs
             settings.setSupportZoom(false)
             addJavascriptInterface(Bridge(), "FoldBridge")
             // HTML <input type=file accept=image/*> requires a native chooser in Android WebView.
