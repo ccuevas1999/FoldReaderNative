@@ -30,7 +30,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -115,6 +117,9 @@ class MainActivity : ComponentActivity() {
             })
             .addPathHandler("/epub/", object : WebViewAssetLoader.PathHandler {
                 override fun handle(path: String): WebResourceResponse? = localImporter.epubImage(path)
+            })
+            .addPathHandler("/doc-images/", object : WebViewAssetLoader.PathHandler {
+                override fun handle(path: String): WebResourceResponse? = documentImage(path)
             }).build()
         reader = WebView(this).apply {
             setBackgroundColor(Color.BLACK)
@@ -223,6 +228,84 @@ class MainActivity : ComponentActivity() {
             runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
         }
     }
+
+    // Google Docs HTML ZIP exports have image files and style sheets.
+    // Both must be retained to reproduce the document's pictures and typography.
+    private fun documentImage(path: String): WebResourceResponse? {
+        val match = Regex("^([A-Za-z0-9_-]{20,100})/(img[0-9]{4}\\.(?:png|jpg|jpeg|gif|webp))$")
+            .matchEntire(path) ?: return null
+        val file = File(File(filesDir, "docs_images_" + match.groupValues[1]), match.groupValues[2])
+        if (!file.isFile) return null
+        val mime = when (file.extension.lowercase()) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            "gif" -> "image/gif"
+            "webp" -> "image/webp"
+            else -> return null
+        }
+        return WebResourceResponse(mime, null, file.inputStream())
+    }
+    private fun takeZipBytes(zip: ZipInputStream, maximum: Int): ByteArray {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(16384)
+        while (true) {
+            val n = zip.read(buffer)
+            if (n < 0) break
+            if (output.size() + n > maximum) error("Document ZIP item is too large")
+            output.write(buffer, 0, n)
+        }
+        return output.toByteArray()
+    }
+    private fun unzipDocHtml(id: String, bytes: ByteArray): String {
+        val images = linkedMapOf<String, String>()
+        val htmlTabs = mutableListOf<String>()
+        val dir = File(filesDir, "docs_images_$id")
+        dir.mkdirs()
+        var imagesTotal = 0L
+        var imageNum = 0
+        ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                val path = entry.name.replace('\\', '/').removePrefix("./")
+                if (!entry.isDirectory && !path.startsWith("/") && !path.contains("../")) {
+                    val lower = path.lowercase()
+                    if (lower.endsWith(".html") || lower.endsWith(".htm")) {
+                        htmlTabs.add(takeZipBytes(zip, 18 * 1024 * 1024).toString(StandardCharsets.UTF_8))
+                    } else if (Regex("\\.(png|jpe?g|gif|webp)$").containsMatchIn(lower) && imageNum < 600) {
+                        val imageBytes = takeZipBytes(zip, 10 * 1024 * 1024)
+                        imagesTotal += imageBytes.size
+                        if (imagesTotal > 65L * 1024 * 1024) error("Too many images in this document")
+                        val ext = lower.substringAfterLast('.').let { if (it == "jpeg") "jpg" else it }
+                        val fileName = "img" + (++imageNum).toString().padStart(4, '0') + ".$ext"
+                        File(dir, fileName).writeBytes(imageBytes)
+                        val url = "https://$domain/doc-images/$id/$fileName"
+                        images[path] = url
+                        images[path.substringAfterLast('/')] = url
+                    }
+                }
+                zip.closeEntry()
+                entry = zip.nextEntry
+            }
+        }
+        if (htmlTabs.isEmpty()) error("Google Docs export had no readable HTML")
+        val attr = Regex("""(?i)(\bsrc\s*=\s*)(["'])([^"'<>]+)\2""")
+        fun fixImages(html: String): String = attr.replace(html) { m ->
+            val src = m.groupValues[3].substringBefore('?').substringBefore('#').removePrefix("./")
+            val decoded = runCatching { URLDecoder.decode(src, "UTF-8") }.getOrDefault(src)
+            val replacement = images[src] ?: images[decoded] ?: images[src.substringAfterLast('/')]
+            if (replacement == null) m.value
+            else m.groupValues[1] + m.groupValues[2] + replacement + m.groupValues[2]
+        }
+        val styles = htmlTabs.joinToString("\n") { tab ->
+            Regex("(?is)<style\\b[^>]*>[\\s\\S]*?</style>").findAll(tab).joinToString("\n") { it.value }
+        }
+        val body = htmlTabs.joinToString("\n<fold-pagebreak></fold-pagebreak>\n") { tab ->
+            fixImages(Regex("(?is)<body\\b[^>]*>([\\s\\S]*?)</body>")
+                .find(tab)?.groupValues?.get(1) ?: tab)
+        }
+        return "<html><head>$styles</head><body>$body</body></html>"
+    }
+
     private fun downloadHtml(id: String): String {
         val req = Request.Builder()
             .url("https://docs.google.com/document/d/$id/export?format=html")
@@ -231,22 +314,9 @@ class MainActivity : ComponentActivity() {
         http.newCall(req).execute().use { r ->
             if (!r.isSuccessful) error("Google Docs returned HTTP ${r.code}")
             val bytes = r.body?.bytes() ?: error("Empty export")
-            val html = if (bytes.size > 2 && bytes[0] == 0x50.toByte() && bytes[1] == 0x4b.toByte()) {
-                val parts = mutableListOf<String>()
-                ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
-                    var e = zip.nextEntry
-                    while(e != null) {
-                        if (!e.isDirectory && e.name.endsWith(".html", ignoreCase=true))
-                            parts.add(zip.readBytes().toString(StandardCharsets.UTF_8))
-                        zip.closeEntry()
-                        e = zip.nextEntry
-                    }
-                }
-                if(parts.isEmpty()) error("No readable HTML in document export")
-                "<html><body>" + parts.joinToString("<hr>") {
-                    Regex("(?is)<body[^>]*>(.*?)</body>").find(it)?.groupValues?.get(1) ?: it
-                } + "</body></html>"
-            } else bytes.toString(StandardCharsets.UTF_8)
+            val html = if (bytes.size > 2 && bytes[0] == 0x50.toByte() && bytes[1] == 0x4b.toByte())
+                unzipDocHtml(id, bytes)
+            else bytes.toString(StandardCharsets.UTF_8)
             if (!Regex("(?i)<(?:html|body|p|h[1-6]|div)\\b").containsMatchIn(html)
                 || html.take(1500).contains("accounts.google.com", ignoreCase=true))
                 error("Document export requires access; check anyone-with-link sharing")
