@@ -1,0 +1,16 @@
+/* Fold Reader v16: independent outside curl, stable binding, unified Page settings. */
+body:not(.portrait) #view::after{content:'';position:absolute;top:0;bottom:0;left:calc(50% - .6px);width:1.2px;background:rgba(35,35,35,.18);box-shadow:none;pointer-events:none;z-index:8}
+#view .turnSheet{clip-path:none!important;overflow:visible!important;transform-style:preserve-3d!important;filter:none!important}
+#view .turnSheet .leaf{clip-path:var(--curlOutline,none);transform-style:preserve-3d!important}
+#view .turnSheet .frontLeaf,#view .turnSheet .backLeaf{backface-visibility:hidden!important;-webkit-backface-visibility:hidden!important;transform-origin:center center!important}
+#glassBottom .secondaryControls{justify-content:flex-end!important;gap:7px}
+#glassBottom #pageSettingsButton{padding:6px 14px!important;min-width:66px}
+.pageSettingsInner{display:flex;flex-direction:column;gap:12px}
+.pageSettingsInner>label{display:flex;justify-content:space-between;align-items:center;margin-top:5px}
+.pageSettingsInner .readerSizeControls{margin:0;justify-content:space-evenly}
+.pageSettingsInner input[type=range]{width:100%;accent-color:#b8a0ef}
+#read .pageBody i,#read .pageBody em,#read .pageBody span[style*="font-style:italic"],#read .pageBody span[style*="font-style: italic"],#measure .pageBody i,#measure .pageBody em,#measure .pageBody span[style*="font-style:italic"],#measure .pageBody span[style*="font-style: italic"]{font-style:italic!important}
+#read[data-book-type="pdf"] .leaf .pageBody,#measure[data-book-type="pdf"] .pageBody{padding:0!important}
+#read[data-book-type="pdf"] .pdfPage{position:relative;width:100%;height:100%;overflow:hidden;background:#fff}
+#read[data-book-type="pdf"] .pdfImage{width:100%;height:100%;max-width:100%!important;max-height:100%!important;object-fit:contain;display:block}
+#read[data-book-type="pdf"][data-paper=dark] .pdfPage{background:#fff}
