@@ -49,6 +49,8 @@ jobs:
           cp native-patches/v12.css project/FoldReaderNative/app/src/main/assets/v12.css
           cp native-patches/v13.js project/FoldReaderNative/app/src/main/assets/v13.js
           cp native-patches/v13.css project/FoldReaderNative/app/src/main/assets/v13.css
+          cp native-patches/v14.js project/FoldReaderNative/app/src/main/assets/v14.js
+          cp native-patches/v14.css project/FoldReaderNative/app/src/main/assets/v14.css
           python - <<'PYCODE'
           from pathlib import Path
           p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
@@ -68,6 +70,10 @@ jobs:
               html=html.replace('</head>', '<link rel="stylesheet" href="v13.css"></head>',1)
           if 'v13.js' not in html:
               html=html.replace('</body></html>', '<script src="v13.js"></script></body></html>',1)
+          if 'v14.css' not in html:
+              html=html.replace('</head>', '<link rel="stylesheet" href="v14.css"></head>',1)
+          if 'v14.js' not in html:
+              html=html.replace('</body></html>', '<script src="v14.js"></script></body></html>',1)
           p.write_text(html)
           PYCODE
           python native-patches/generate_sound.py project/FoldReaderNative/app/src/main/assets/page_turn.wav
