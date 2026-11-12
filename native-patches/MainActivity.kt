@@ -1,6 +1,7 @@
 package com.example
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -182,6 +183,15 @@ class MainActivity : ComponentActivity() {
         @JavascriptInterface fun setReaderMode(yes:Boolean) { mainThread.post { setFullscreen(yes) } }
         @JavascriptInterface fun openEditor(url:String) { openInDocs(url) }
         @JavascriptInterface fun finishReader() { mainThread.post { finish() } }
+    }
+    // Keep the same WebView and active book during fold/unfold configuration changes.
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (::reader.isInitialized) {
+            reader.postDelayed({
+                reader.evaluateJavascript("window.foldViewportChanged && window.foldViewportChanged();", null)
+            }, 250)
+        }
     }
     override fun onDestroy() {
         if (::reader.isInitialized) { reader.removeJavascriptInterface("FoldBridge"); reader.destroy() }
