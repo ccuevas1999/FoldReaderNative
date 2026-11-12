@@ -1,0 +1,92 @@
+/* Fold Reader v20: consistent reading bounds, matte daylight UI and library skins. */
+:root {--foldMoss:#aabda5;--foldMossDim:#aabda5}
+#glassBottom #progress,#progress,#pageEye,#foldCoverSize{accent-color:var(--foldMoss)!important}
+#progress::-webkit-slider-thumb,#pageEye::-webkit-slider-thumb,#foldCoverSize::-webkit-slider-thumb{background:var(--foldMoss)!important}
+#foldUiThemeToggle{min-width:30px!important;font-size:19px!important;line-height:1!important}
+#glassBottom.foldCompactBar .readerControlRow.primaryControls{gap:clamp(2px,.6vw,7px)!important}
+#read[data-book-type=doc] #view .pageBody,
+#read[data-book-type=epub] #view .pageBody,
+#measure:not([data-book-type=pdf]) .pageBody{
+  padding-bottom:max(42px,calc(var(--pageSafeBottom,100px) - 55px))!important;
+}
+/* Use identical outer book gutters for EPUB and Docs. EPUB text must wrap. */
+#read[data-book-type=epub] #view .pageBody,
+#measure[data-book-type=epub] .pageBody{padding-left:7.3%!important;padding-right:7.3%!important}
+#read[data-book-type=epub] .pageBody *,
+#measure[data-book-type=epub] .pageBody *{
+  box-sizing:border-box!important;max-width:100%!important;
+  overflow-wrap:anywhere!important;word-break:normal!important;white-space:normal!important;
+}
+#read[data-book-type=epub] .pageBody img{
+  display:block;max-width:100%!important;max-height:62vh!important;
+  object-fit:contain!important;width:auto!important;height:auto!important;margin:auto!important;
+}
+/* PDF's source typography is fixed; zoom/scroll stays inside the same gutters. */
+#read[data-book-type=pdf] #view .pageBody{padding:52px 7.3% 46px!important}
+#read[data-book-type=pdf] .pdfPage{width:100%;height:100%;overflow:auto;overscroll-behavior:contain}
+#read[data-book-type=pdf] .pdfImage{object-fit:contain;max-width:none!important;
+  max-height:none!important;width:calc(100% * var(--pdfZoom,1))!important;
+  height:calc(100% * var(--pdfZoom,1))!important}
+/* The user-selected accent stays pale moss unless explicitly changed. */
+#foldHueWheel{width:min(250px,67vw);aspect-ratio:1;margin:18px auto;
+  border-radius:50%;cursor:crosshair;touch-action:none;
+  background:radial-gradient(circle,transparent 0 52%,#1e241e 54% 60%,transparent 61%),
+    conic-gradient(red,magenta,blue,cyan,lime,yellow,red);
+  box-shadow:0 0 0 4px #7e957e44,inset 0 0 2px #fff;
+}
+#foldHueWheel:focus-visible{outline:2px solid var(--foldMoss);outline-offset:6px}
+#foldCustomColor{max-width:180px;height:48px;padding:4px;border-radius:7px}
+#foldShelfThemes{border:1px solid #4d554f;border-radius:10px;padding:10px;margin:15px 0}
+#foldShelfThemes legend{padding:0 6px}
+.foldThemeChoices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.foldThemeChoices button{padding:7px 3px;font-size:12px}
+.foldThemeChoices button[aria-pressed=true]{border-color:var(--foldMoss)!important;box-shadow:inset 0 0 0 1px var(--foldMoss)!important}
+/* The following modify only shelves, never the user's individual covers. */
+#library[data-shelf-theme=dark]{background:linear-gradient(#101013,#050506)!important;color:#f6f6f6}
+#library[data-shelf-theme=aero]{background:linear-gradient(160deg,#a2d3ed,#6aa7bf 48%,#204963)!important;color:#123343}
+#library[data-shelf-theme=aero] #shelf{background:repeating-linear-gradient(to bottom,
+ rgba(255,255,255,.08) 0 calc(167px * var(--shelfScale)),
+ rgba(228,250,255,.96) calc(169px * var(--shelfScale)),
+ rgba(105,190,224,.98) calc(175px * var(--shelfScale)),
+ rgba(15,92,135,.73) calc(181px * var(--shelfScale)),
+ transparent calc(188px * var(--shelfScale)))!important;
+ box-shadow:inset 0 0 60px rgba(255,255,255,.3)}
+#library[data-shelf-theme=wood]{color:#f5e8c7;background:repeating-linear-gradient(90deg,#412a1b 0 45px,#59402a 47px 93px,#3d2618 96px 134px)!important}
+#library[data-shelf-theme=wood] #shelf{background:repeating-linear-gradient(to bottom,
+ transparent 0 calc(166px * var(--shelfScale)),
+ #6e4725 calc(169px * var(--shelfScale)),
+ #ad7a45 calc(174px * var(--shelfScale)),
+ #301a0d calc(182px * var(--shelfScale)),
+ transparent calc(188px * var(--shelfScale)))!important;box-shadow:inset 0 0 30px #1c100e88}
+#library[data-shelf-theme=white]{background:linear-gradient(#fdfdfc,#e9ece9)!important;color:#222a22}
+#library[data-shelf-theme=white] #shelf{background:repeating-linear-gradient(to bottom,
+ transparent 0 calc(168px * var(--shelfScale)),
+ #ebedea calc(171px * var(--shelfScale)),
+ #fff calc(174px * var(--shelfScale)),
+ #aab6ab calc(181px * var(--shelfScale)),
+ transparent calc(188px * var(--shelfScale)))!important}
+/* Monochrome day mode for the controls, menus and library chrome. Paper remains book-specific. */
+body.foldUiLight{background:#f8faf8;color:#1a201a}
+body.foldUiLight header{background:#f3f6f2!important;color:#1a201a!important;border-color:#c0c9c0!important}
+body.foldUiLight header button,body.foldUiLight button:not(.cover):not(.more),
+body.foldUiLight select,body.foldUiLight input:not([type=range]):not([type=checkbox]){
+ color:#172017!important;background:#fafcf9!important;border-color:#bec9be!important;
+}
+body.foldUiLight #glassTop,body.foldUiLight #glassBottom,
+body.foldUiLight #glassTop.foldLiquidGlass,body.foldUiLight #glassBottom.foldLiquidGlass{
+ background:#f6f8f4ee!important;color:#172017!important;border-color:#b9c5b9!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;
+}
+body.foldUiLight #glassTop strong,body.foldUiLight #pageCount{color:#172017!important}
+body.foldUiLight .panel,body.foldUiLight #toc{
+ background:#f4f8f2!important;color:#131d14!important;border-color:#b2c1b2!important;
+}
+body.foldUiLight .panel .muted,body.foldUiLight #toc .muted{color:#566457!important}
+body.foldUiLight .panelShade{background:rgba(0,0,0,.25)!important}
+body.foldUiLight #library[data-shelf-theme=dark]{background:#f8faf8!important;color:#152115!important}
+body.foldUiLight #read{background:var(--paper,#fff)}
+/* The popup is still readable in daytime, with no loss of source formatting. */
+body.foldUiLight .foldnote-body{color:#172017!important}
+body.foldUiLight #shade.foldFootnoteOpen .panel{background:#fff!important;color:#172017!important}
+@media(max-width:410px){.foldThemeChoices{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){#foldHueWheel,#foldUiThemeToggle{transition:none!important}}
