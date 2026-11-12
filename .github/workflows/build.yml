@@ -56,6 +56,8 @@ jobs:
           cp native-patches/v15.css project/FoldReaderNative/app/src/main/assets/v15.css
           cp native-patches/v16.js project/FoldReaderNative/app/src/main/assets/v16.js
           cp native-patches/v16.css project/FoldReaderNative/app/src/main/assets/v16.css
+          cp native-patches/v17.js project/FoldReaderNative/app/src/main/assets/v17.js
+          cp native-patches/v17.css project/FoldReaderNative/app/src/main/assets/v17.css
           python - <<'PYCODE'
           from pathlib import Path
           p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
@@ -87,9 +89,13 @@ jobs:
               html=html.replace('</head>', '<link rel="stylesheet" href="v16.css"></head>',1)
           if 'v16.js' not in html:
               html=html.replace('</body></html>', '<script src="v16.js"></script></body></html>',1)
+          if 'v17.css' not in html:
+              html=html.replace('</head>', '<link rel="stylesheet" href="v17.css"></head>',1)
+          if 'v17.js' not in html:
+              html=html.replace('</body></html>', '<script src="v17.js"></script></body></html>',1)
           # Respect forced breaks recognized by the v15 sanitizer and chapter markup.
           before="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';"
-          after="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';if(b.tagName==='FOLD-PAGEBREAK'){if(body.children.length)await finish();continue;}"
+          after="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';if(b.tagName==='FOLD-PAGEBREAK'){if([...body.children].some(n=>n.textContent.trim()||n.querySelector('img,table'))){await finish()}else{body.replaceChildren()}continue;}"
           assert before in html, 'Unable to patch pagination pagebreak support'
           html=html.replace(before,after,1)
           p.write_text(html)
