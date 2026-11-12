@@ -48,8 +48,13 @@ jobs:
           from pathlib import Path
           p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
           html=p.read_text()
-          assert '<script src="v10.js"></script>' in html
-          html=html.replace('<script src="v10.js"></script>', '<script src="v10.js"></script><script src="v11.js"></script>')
+          assert '</head>' in html and '</body></html>' in html
+          if 'v10.css' not in html:
+              html=html.replace('</head>', '<link rel="stylesheet" href="v10.css"></head>',1)
+          if 'v10.js' not in html:
+              html=html.replace('</body></html>', '<script src="v10.js"></script><script src="v11.js"></script></body></html>',1)
+          elif 'v11.js' not in html:
+              html=html.replace('<script src="v10.js"></script>', '<script src="v10.js"></script><script src="v11.js"></script>',1)
           p.write_text(html)
           PYCODE
           python native-patches/generate_sound.py project/FoldReaderNative/app/src/main/assets/page_turn.wav
