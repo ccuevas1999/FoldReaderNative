@@ -1,0 +1,36 @@
+/* Screen-safe controls, real dismissible Contents backdrop, paper-curl shading. */
+html,body{width:100%;height:100%;overscroll-behavior:none}
+button,select,input{max-width:100%;min-width:0}
+#tocBackdrop{display:none;position:absolute;inset:0;background:#0009;z-index:14;touch-action:manipulation}
+#toc{z-index:15;top:max(env(safe-area-inset-top),8px);bottom:max(env(safe-area-inset-bottom),8px);left:max(env(safe-area-inset-left),0px);transform:none;height:auto;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);width:min(85vw,350px);border-radius:0 16px 16px 0;box-shadow:4px 4px 20px #0007;padding:16px;overscroll-behavior:contain}
+#tocClose{position:sticky;top:0;z-index:2;margin:0 0 14px auto;width:auto;text-align:center;background:#282b30;border:1px solid #656565;padding:10px 14px}
+#toc h2{margin-top:6px}
+#glassTop,#glassBottom{box-sizing:border-box;max-width:calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 12px);margin:0;overflow:hidden}
+#glassTop{top:calc(env(safe-area-inset-top) + 6px);left:calc(env(safe-area-inset-left) + 6px);right:calc(env(safe-area-inset-right) + 6px);width:auto;gap:4px}
+#glassTop button{flex-shrink:0;padding:6px;min-width:0;white-space:nowrap;font-size:clamp(10px,2.8vw,13px)}
+#glassTop strong{font-size:clamp(10px,2.8vw,14px);min-width:0}
+#glassBottom{bottom:calc(env(safe-area-inset-bottom) + 6px);left:calc(env(safe-area-inset-left) + 6px);right:calc(env(safe-area-inset-right) + 6px);width:auto;display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:5px}
+.readerControlRow{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;width:100%}
+.readerControlRow>button,.readerControlRow>select{min-height:30px;flex-shrink:0;padding:5px 7px;font-size:clamp(10px,2.45vw,12px);white-space:nowrap}
+.readerControlRow.primaryControls>#progress{flex:1 1 auto;width:1%;min-width:25px;padding:0;height:26px;accent-color:#b8a0ef}
+.readerControlRow.primaryControls>#pageCount{flex-shrink:0;min-width:56px;font-size:clamp(10px,2.6vw,12px)}
+.readerControlRow .pageArrow{font-size:18px;line-height:20px;min-width:32px}
+.readerControlRow.secondaryControls{justify-content:space-between}
+.readerControlRow.secondaryControls>select{flex:0 1 auto;max-width:75px}
+.readerControlRow button:disabled{opacity:.35}
+#view .pageBody{padding-top:max(52px,calc(env(safe-area-inset-top) + 48px));padding-bottom:max(72px,calc(env(safe-area-inset-bottom) + 76px))}
+#reflowStatus{bottom:calc(env(safe-area-inset-bottom) + 112px);max-width:calc(100vw - 30px);overflow:hidden;text-overflow:ellipsis}
+.panelShade{padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+.panel{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 22px)}
+.cover[aria-busy="true"]{filter:saturate(.68)}
+.loadingSpinner{position:absolute;z-index:4;top:35%;left:calc(50% - 16px);width:32px;height:32px;border:3px solid #f8f8f880;border-top-color:#fff;border-radius:50%;animation:foldSpin .75s linear infinite;box-shadow:0 1px 4px #000b}
+.loadingCaption{position:absolute;left:2px;right:2px;bottom:22px;font-size:10px;color:white;text-shadow:0 2px 5px black;background:#0009;border-radius:5px;padding:3px}
+.errorBadge{position:absolute;left:3px;right:3px;bottom:18px;background:#651e1ee8;border-radius:5px;color:white;font-size:10px;padding:4px}
+@keyframes foldSpin{to{transform:rotate(360deg)}}
+/* A subtle rounded-edge peel with a shadowed flexible edge, no sudden rectangular flap. */
+#view .turnSheet{transform-style:preserve-3d;filter:drop-shadow(0 0 12px #0005);will-change:transform,clip-path;overflow:visible}
+#view .turnSheet .leaf{border-radius:var(--peelRadius,0px);overflow:hidden;box-shadow:0 1px 4px #0002,inset 0 0 3px #0002}
+#view .turnSheet .leaf::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:linear-gradient(var(--peelAngle,90deg),transparent 36%,#fff4 70%,#1115 96%,#fff9 100%);opacity:var(--peelOpacity,0);mix-blend-mode:multiply}
+#view .turnSheet .leaf::after{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;background:linear-gradient(var(--peelAngle,90deg),#0003,transparent 30%,transparent 60%,#0006 98%);opacity:var(--sheetShade,0)}
+@media(max-width:385px){.readerControlRow{gap:3px}.readerControlRow>button,.readerControlRow>select{padding:4px 5px}.readerControlRow.primaryControls>#pageCount{min-width:48px}.readerControlRow .pageArrow{min-width:28px}#glassTop button{padding:5px 4px}}
+@media(max-height:540px){#glassBottom{gap:2px}.readerControlRow>button,.readerControlRow>select{min-height:26px}#view .pageBody{padding-top:42px;padding-bottom:70px}#toc{max-height:calc(100dvh - 12px)}}
