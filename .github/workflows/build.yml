@@ -1,4 +1,5 @@
 # Convenience workflow if project is uploaded to GitHub as one ZIP from a phone.
+# Permanent signing verification run after GitHub Actions secrets were refreshed.
 # This workflow requires FoldReaderNative_Ready_for_GitHub.zip at the root of your repository.
 name: Build APK from uploaded ZIP
 on:
