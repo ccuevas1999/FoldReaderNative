@@ -13,6 +13,9 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.WindowCompat
@@ -31,6 +34,28 @@ import java.util.zip.ZipInputStream
 
 class MainActivity : ComponentActivity() {
     private lateinit var reader: WebView
+    private lateinit var windowRoot: FrameLayout
+    private var readingMode = false
+    private var latestInsets: WindowInsetsCompat? = null
+
+    // Edge-to-edge is mandatory on recent Android versions. Keep the *library*
+    // below the real status bar and above navigation gestures, while allowing
+    // immersive reading to use the screen once those bars are hidden.
+    private fun applyScreenInsets(insets: WindowInsetsCompat) {
+        if (!::reader.isInitialized) return
+        val system = insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars())
+        val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+        val left = if (readingMode) cutout.left else maxOf(system.left, cutout.left)
+        val top = if (readingMode) cutout.top else maxOf(system.top, cutout.top)
+        val right = if (readingMode) cutout.right else maxOf(system.right, cutout.right)
+        val bottom = if (readingMode) cutout.bottom else maxOf(system.bottom, cutout.bottom)
+        val lp = reader.layoutParams as? FrameLayout.LayoutParams ?: return
+        if (lp.leftMargin != left || lp.topMargin != top ||
+            lp.rightMargin != right || lp.bottomMargin != bottom) {
+            lp.setMargins(left, top, right, bottom)
+            reader.layoutParams = lp
+        }
+    }
     private val executor = Executors.newSingleThreadExecutor()
     private val mainThread = Handler(Looper.getMainLooper())
     private val http = OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS)
@@ -84,7 +109,21 @@ class MainActivity : ComponentActivity() {
             }
             loadUrl("https://$domain/assets/fold_reader.html")
         }
-        setContentView(reader)
+        // A native inset-aware parent prevents the web toolbar from being
+        // placed underneath the Fold's status bar / camera cutout.
+        windowRoot = FrameLayout(this).apply {
+            setBackgroundColor(Color.BLACK)
+            addView(reader, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            ))
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(windowRoot) { _, insets ->
+            latestInsets = insets
+            applyScreenInsets(insets)
+            insets
+        }
+        setContentView(windowRoot)
+        ViewCompat.requestApplyInsets(windowRoot)
         showBars()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { reader.evaluateJavascript("window.foldBackPressed();", null) }
@@ -115,6 +154,9 @@ class MainActivity : ComponentActivity() {
         WindowCompat.getInsetsController(window, window.decorView).show(WindowInsetsCompat.Type.systemBars())
     }
     private fun setFullscreen(reading: Boolean) {
+        readingMode = reading
+        latestInsets?.let { applyScreenInsets(it) }
+        if (::windowRoot.isInitialized) ViewCompat.requestApplyInsets(windowRoot)
         val controller = WindowCompat.getInsetsController(window, window.decorView)
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         if (reading) controller.hide(WindowInsetsCompat.Type.systemBars()) else controller.show(WindowInsetsCompat.Type.systemBars())
@@ -187,6 +229,7 @@ class MainActivity : ComponentActivity() {
     // Keep the same WebView and active book during fold/unfold configuration changes.
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (::windowRoot.isInitialized) ViewCompat.requestApplyInsets(windowRoot)
         if (::reader.isInitialized) {
             reader.postDelayed({
                 reader.evaluateJavascript("window.foldViewportChanged && window.foldViewportChanged();", null)
