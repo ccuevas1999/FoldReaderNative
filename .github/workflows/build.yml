@@ -67,37 +67,26 @@ jobs:
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode"/' project/FoldReaderNative/app/src/main/AndroidManifest.xml
           echo 'dependencies { implementation("androidx.webkit:webkit:1.12.1") }' >> project/FoldReaderNative/app/build.gradle.kts
           cat native-patches/stable-signing.gradle.kts >> project/FoldReaderNative/app/build.gradle.kts
-      - name: Configure permanent APK signing when GitHub secrets are present
+      - name: Validate and configure permanent APK signing
         env:
           KEYSTORE_B64: ${{ secrets.FOLD_READER_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.FOLD_READER_KEYSTORE_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
-            python - <<'PYCODE'
-            import os, base64, hashlib, pathlib, sys
-            text=os.environ['KEYSTORE_B64']
-            try:
-                decoded=base64.b64decode(''.join(text.split()),validate=True)
-            except Exception:
-                print('::error::FOLD_READER_KEYSTORE_BASE64 is not valid base64. Copy only the long value from GitHub_Secrets.txt.')
-                sys.exit(1)
-            expected='b6823a08ae04949fc8014695f3c9e80662f340d3d135f4d6eabf29a56df65056'
-            if hashlib.sha256(decoded).hexdigest()!=expected:
-                print('::error::The keystore secret does not match the original signing certificate. Re-copy the entire long value from GitHub_Secrets.txt; do not upload the ZIP.')
-                print('Received decoded byte count:',len(decoded),'; expected: 3536')
-                sys.exit(1)
-            target=pathlib.Path('project/FoldReaderNative/foldreader.p12')
-            target.write_bytes(decoded)
-            target.chmod(0o600)
-            print('Permanent signing certificate data validated.')
-            PYCODE
-            echo "FOLD_SIGNING_PATH=$GITHUB_WORKSPACE/project/FoldReaderNative/foldreader.p12" >> "$GITHUB_ENV"
-            echo "FOLD_SIGNING_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
-            echo "FOLD_SIGNING_STATUS=stable" >> "$GITHUB_ENV"
-          else
-            echo "::error::Permanent signing secrets are missing. No updateable APK will be produced."
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Both permanent signing secrets are required."
             exit 1
           fi
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > project/FoldReaderNative/foldreader.p12
+          if ! echo 'b6823a08ae04949fc8014695f3c9e80662f340d3d135f4d6eabf29a56df65056  project/FoldReaderNative/foldreader.p12' | sha256sum --check --status; then
+            echo "::error::The saved keystore secret does not match the signing certificate. Re-copy the full FOLD_READER_KEYSTORE_BASE64 value from GitHub_Secrets.txt."
+            echo "Decoded file size: $(wc -c < project/FoldReaderNative/foldreader.p12) bytes; expected 3536."
+            exit 1
+          fi
+          chmod 600 project/FoldReaderNative/foldreader.p12
+          echo "FOLD_SIGNING_PATH=$GITHUB_WORKSPACE/project/FoldReaderNative/foldreader.p12" >> "$GITHUB_ENV"
+          echo "FOLD_SIGNING_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "FOLD_SIGNING_STATUS=stable" >> "$GITHUB_ENV"
+          echo "Permanent keystore data validated."
       - name: Build debug APK
         working-directory: project/FoldReaderNative
         run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
