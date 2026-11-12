@@ -1,0 +1,20 @@
+/* Reserve exactly the same toolbar clearance for visible and measured pages. */
+#view .pageBody,#measure .pageBody {
+ padding-top:var(--pageSafeTop,98px)!important;
+ padding-bottom:var(--pageSafeBottom,138px)!important;
+}
+/* Do not flatten a 3D page by filtering its parent. A filtered parent can
+   render the mirrored front instead of revealing the oriented back face. */
+#view .turnSheet {
+ filter:none!important;
+ transform-style:preserve-3d!important;
+ -webkit-transform-style:preserve-3d!important;
+ overflow:visible;
+ will-change:transform;
+}
+#view .turnSheet .frontLeaf,#view .turnSheet .backLeaf {
+ backface-visibility:hidden!important;
+ -webkit-backface-visibility:hidden!important;
+}
+#view .turnSheet .frontLeaf{transform:translateZ(1.5px)!important}
+#view .turnSheet .backLeaf{transform:rotateY(180deg) translateZ(1.5px)!important}
