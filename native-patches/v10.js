@@ -7,7 +7,7 @@
   const loadingBooks = new Set();
   const failedBooks = new Map();
   let activeImport = new Map();
-  let fontScale = Math.min(1.6, Math.max(.75, Number(localStorage.foldTextScale) || 1));
+  let fontScale = Math.min(1.6, Math.max(.65, Number(localStorage.foldTextScale) || 1));
   const reader = get('read');
   reader.style.setProperty('--reader-scale', String(fontScale));
 
@@ -72,28 +72,28 @@
   const oldLeaf = leaf;
   leaf = function() {
     const item = oldLeaf();
-    item.firstElementChild.style.fontSize = Math.round(19 * fontScale) + 'px';
+    item.firstElementChild.style.fontSize = (19 * fontScale).toFixed(2) + 'px';
     return item;
   };
   function changeReaderText(delta) {
-    const next = Math.round(Math.max(.75, Math.min(1.6, fontScale + delta)) * 100) / 100;
+    const next = Math.round(Math.max(.65, Math.min(1.6, fontScale + delta)) * 100) / 100;
     if(next === fontScale) return;
     fontScale = next;
     localStorage.foldTextScale = String(next);
     reader.style.setProperty('--reader-scale', String(fontScale));
-    get('fontDown').disabled = fontScale <= .75;
+    get('fontDown').disabled = fontScale <= .65;
     get('fontUp').disabled = fontScale >= 1.6;
     if(bookId >= 0) scheduleReflow();
   }
-  get('fontDown').onclick = () => changeReaderText(-.1);
-  get('fontUp').onclick = () => changeReaderText(.1);
-  get('fontDown').disabled = fontScale <= .75;
+  get('fontDown').onclick = () => changeReaderText(-.05);
+  get('fontUp').onclick = () => changeReaderText(.05);
+  get('fontDown').disabled = fontScale <= .65;
   get('fontUp').disabled = fontScale >= 1.6;
 
   // This is a bundled wave file, not a synthetic per-turn sound. Its audio is local and offline.
   const pageSound = new Audio('page_turn.wav');
   pageSound.preload = 'auto';
-  pageSound.volume = .48;
+  pageSound.volume = .19;
   rustle = function() {
     if (!sound) return;
     try { pageSound.pause(); pageSound.currentTime = 0; pageSound.play().catch(() => {}); }
@@ -102,7 +102,6 @@
   const originalToggleSound = toggleSound;
   toggleSound = function() {
     originalToggleSound();
-    if (sound) rustle();
   };
 
   // New links return to the bookshelf immediately; import progress lives on each cover.
