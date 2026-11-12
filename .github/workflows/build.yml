@@ -40,6 +40,7 @@ jobs:
       - name: Apply native fullscreen reader and formatting fixes
         run: |
           cp native-patches/MainActivity.kt project/FoldReaderNative/app/src/main/java/com/example/MainActivity.kt
+          cp native-patches/LocalImporter.kt project/FoldReaderNative/app/src/main/java/com/example/LocalImporter.kt
           mkdir -p project/FoldReaderNative/app/src/main/assets
           cp native-patches/fold_reader.html project/FoldReaderNative/app/src/main/assets/fold_reader.html
           cp native-patches/v10.js project/FoldReaderNative/app/src/main/assets/v10.js
@@ -53,6 +54,8 @@ jobs:
           cp native-patches/v14.css project/FoldReaderNative/app/src/main/assets/v14.css
           cp native-patches/v15.js project/FoldReaderNative/app/src/main/assets/v15.js
           cp native-patches/v15.css project/FoldReaderNative/app/src/main/assets/v15.css
+          cp native-patches/v16.js project/FoldReaderNative/app/src/main/assets/v16.js
+          cp native-patches/v16.css project/FoldReaderNative/app/src/main/assets/v16.css
           python - <<'PYCODE'
           from pathlib import Path
           p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
@@ -80,6 +83,10 @@ jobs:
               html=html.replace('</head>', '<link rel="stylesheet" href="v15.css"></head>',1)
           if 'v15.js' not in html:
               html=html.replace('</body></html>', '<script src="v15.js"></script></body></html>',1)
+          if 'v16.css' not in html:
+              html=html.replace('</head>', '<link rel="stylesheet" href="v16.css"></head>',1)
+          if 'v16.js' not in html:
+              html=html.replace('</body></html>', '<script src="v16.js"></script></body></html>',1)
           # Respect forced breaks recognized by the v15 sanitizer and chapter markup.
           before="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';"
           after="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';if(b.tagName==='FOLD-PAGEBREAK'){if(body.children.length)await finish();continue;}"
