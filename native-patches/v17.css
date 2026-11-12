@@ -1,0 +1,56 @@
+/* v17: consistent typography, true two-sided turning, compact notes, larger bookshelf. */
+#shelf {
+  grid-template-columns:repeat(auto-fill,minmax(99px,116px))!important;
+  grid-auto-rows:202px!important;
+  gap:27px 15px!important;
+  background:repeating-linear-gradient(to bottom,transparent 0 185px,#555 188px,#999 191px,#111 198px,transparent 207px)!important;
+}
+#shelf .cover {height:161px!important}
+#shelf .cover b{font-size:14px!important}
+/* Standard-size body text regardless of Google Docs' uneven span sizes. */
+#view .pageBody,#measure .pageBody {
+  font-size:calc(19px * var(--reader-scale,1))!important;
+  line-height:1.53!important;
+}
+#view .pageBody *:not(sup):not(sub):not(h1):not(h2):not(h3):not(h4),
+#measure .pageBody *:not(sup):not(sub):not(h1):not(h2):not(h3):not(h4) {
+  font-size:inherit!important;
+  line-height:inherit!important;
+}
+#view .pageBody h1,#measure .pageBody h1 {font-size:1.40em!important;font-weight:700!important}
+#view .pageBody h2,#measure .pageBody h2 {font-size:1.28em!important;font-weight:700!important}
+#view .pageBody h3,#measure .pageBody h3,
+#view .pageBody h4,#measure .pageBody h4 {font-size:1.12em!important;font-weight:700!important}
+#view .pageBody strong,#view .pageBody b,#measure .pageBody strong,#measure .pageBody b,
+#view .pageBody [style*="font-weight:700"],#measure .pageBody [style*="font-weight:700"] {
+  font-weight:700!important;
+}
+#view .pageBody i,#view .pageBody em,#measure .pageBody i,#measure .pageBody em,
+#view .pageBody [style*="font-style:italic"],#measure .pageBody [style*="font-style:italic"] {
+  font-style:italic!important;
+}
+#view .pageBody sup,#measure .pageBody sup {font-size:.68em!important;line-height:0!important;vertical-align:super!important}
+#view .pageBody sub,#measure .pageBody sub {font-size:.68em!important;line-height:0!important;vertical-align:sub!important}
+#view .pageBody .pdfPage,#view .pageBody .pdfPage *{font-size:initial!important;line-height:normal!important}
+#read[data-book-type=pdf] .pdfImage{transform:scale(var(--pdfZoom,1));transform-origin:center center;max-width:100%!important;max-height:100%!important}
+/* Both faces remain flat at their center hinge, with only the exterior edge clipped. */
+#view .turnSheet {overflow:visible!important;transform-style:preserve-3d!important;filter:none!important}
+#view .turnSheet .frontLeaf {
+  clip-path:var(--curlFront,none)!important;
+  border-radius:0!important;
+  -webkit-backface-visibility:hidden!important;backface-visibility:hidden!important;
+  transform:translateZ(1.5px)!important;
+}
+#view .turnSheet .backLeaf {
+  clip-path:var(--curlBack,none)!important;
+  border-radius:0!important;
+  -webkit-backface-visibility:hidden!important;backface-visibility:hidden!important;
+  transform:rotateY(180deg) translateZ(1.5px)!important;
+}
+/* The dark LCD bar has book-like compact note popups. */
+#panel:has(.foldnote-head), .panel:has(.foldnote-head) {padding:14px 17px!important;max-height:80dvh!important}
+.foldnote-head {gap:8px!important;align-items:center!important;margin:0 0 4px!important}
+.foldnote-head h2 {font:600 16px/1.3 system-ui,sans-serif!important;margin:0!important}
+#foldnoteClose{font:12px/1.3 system-ui,sans-serif!important;padding:6px 9px!important;min-height:29px!important;border-radius:8px!important}
+.foldnote-body{margin-top:6px!important;max-height:65dvh!important;overflow-y:auto!important;line-height:1.45!important}
+.foldnote-body p{margin:0 0 .45em!important}
