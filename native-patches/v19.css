@@ -1,0 +1,115 @@
+/* Fold Reader v19: matte AMOLED, evenly spaced controls and safe page padding. */
+:root{--foldMoss:#75886e;--foldMossDim:#61755e}
+#glassTop,#glassBottom,
+#glassTop.foldLiquidGlass,#glassBottom.foldLiquidGlass{
+  background:#080a08f7!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  border:1px solid #343a34!important;
+  box-shadow:none!important;
+  isolation:auto!important;
+}
+#glassTop::before,#glassBottom::before{display:none!important;content:none!important}
+#glassTop button,#glassBottom button,
+#glassTop.foldLiquidGlass button,#glassBottom.foldLiquidGlass button{
+  background:#171a17!important;
+  border:1px solid #3c443c!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  transform:none!important;
+  transition:background-color .12s ease!important;
+}
+#glassTop button:active,#glassBottom button:active{background:#29332a!important}
+#glassTop{
+  top:6px!important;height:48px!important;
+  padding:5px 10px!important;box-sizing:border-box!important;
+  border-radius:12px!important;
+}
+#glassTop button{min-height:34px!important;padding:6px 10px!important}
+#glassBottom.foldCompactBar{
+  bottom:calc(env(safe-area-inset-bottom) + 7px)!important;
+  min-height:48px!important;
+  padding:6px 7px!important;
+  display:flex!important;align-items:center!important;
+  border-radius:12px!important;
+}
+#glassBottom.foldCompactBar .readerControlRow.primaryControls{
+  min-height:34px!important;align-items:center!important;
+}
+#glassBottom.foldCompactBar .readerControlRow.primaryControls>button{
+  min-height:34px!important;
+}
+input[type=range],#progress,#pageEye,#foldCoverSize{accent-color:var(--foldMoss)!important}
+input[type=checkbox]{accent-color:var(--foldMoss)!important}
+#glassBottom #progress::-webkit-slider-thumb,#pageEye::-webkit-slider-thumb,#foldCoverSize::-webkit-slider-thumb{
+  background-color:var(--foldMoss)!important;
+}
+/* Two more text lines, without allowing text to extend underneath the navigation bar.
+   The reader normally hides the controls during reading. */
+#view .pageBody,#measure .pageBody{
+  padding-bottom:max(20px,calc(var(--pageSafeBottom,100px) - 98px))!important;
+}
+@media (orientation:landscape) and (min-width:651px){
+ body:not(.portrait) #view .pageBody,
+ body:not(.portrait) #measure .pageBody{
+   padding-bottom:20px!important;
+ }
+}
+/* Retain a compact, legible inset for the completion percentage. */
+#read.hideHud .chapterCompletion{bottom:9px!important}
+/* Consistent numeral typography without touching numbered explanatory notes. */
+#view .pageBody sup.foldVerseNumber,
+#measure .pageBody sup.foldVerseNumber{
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-weight:600!important;
+  font-style:normal!important;
+  font-size:.64em!important;
+  line-height:0!important;
+  vertical-align:super!important;
+  letter-spacing:0!important;
+  font-variant-numeric:lining-nums tabular-nums;
+  margin-right:.12em;
+}
+/* A note floats above the book without dimming or shadowing the pages. */
+#shade.foldFootnoteOpen{
+  background:transparent!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+#shade.foldFootnoteOpen .panel{
+  box-shadow:none!important;
+  background:#111411!important;
+  border:1px solid #384238!important;
+}
+#shade.foldFootnoteOpen .foldnote-head{margin-bottom:2px!important}
+#shade.foldFootnoteOpen .foldnote-body{margin-top:5px!important}
+#read .pageBody,#measure .pageBody {overflow-wrap:anywhere;}
+#view .pageBody p,#measure .pageBody p,
+#view .pageBody li,#measure .pageBody li {
+  max-width:100%!important;white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+#read[data-book-type='epub'] .pageBody img,
+#measure .pageBody img{
+  max-width:100%!important;width:auto!important;height:auto!important;
+}
+#view .pageBody table,#measure .pageBody table {
+  max-width:100%;table-layout:fixed;overflow-wrap:anywhere;
+}
+/* Fixed PDFs: the entire sheet remains inside its page, and zoom scrolls within
+   the page boundaries instead of clipping words at the outside edge. */
+#read[data-book-type='pdf'] #view{touch-action:pan-x pan-y!important}
+#read[data-book-type='pdf'] #view .pageBody{padding:12px!important}
+#read[data-book-type='pdf'] .pdfPage{
+  width:100%!important;height:100%!important;
+  overflow:auto!important;overscroll-behavior:contain!important;
+  touch-action:pan-x pan-y!important;
+  background:#fff!important;
+}
+#read[data-book-type='pdf'] .pdfImage{
+  display:block!important;
+  width:calc(100% * var(--pdfZoom,1))!important;
+  height:calc(100% * var(--pdfZoom,1))!important;
+  max-width:none!important;max-height:none!important;
+  transform:none!important;object-fit:contain!important;
+  margin:0!important;
+}
+@media (prefers-reduced-motion:reduce){#glassTop *,#glassBottom *{transition:none!important}}
