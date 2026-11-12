@@ -137,6 +137,19 @@
     else read.style.setProperty('--selectedReaderFont',chosenFonts[fontChoice]||chosenFonts.Arial);
   }
   applyFont();
+  // Native Page settings can reuse the existing validated EPUB/Docs font handling.
+  window.foldSetFontChoice=function(next){
+    if(next!=='Original' && !(next in chosenFonts))return;
+    fontChoice=next;
+    localStorage.foldFontChoice=fontChoice;
+    applyFont();
+    if(bookId>=0)scheduleReflow();
+  };
+  window.foldSetEyeComfort=function(value){
+    eyeLevel=clamp(Number(value)||0,0,100);
+    localStorage.foldEyeComfort=String(eyeLevel);
+    refreshEye();
+  };
   if(bottom) {
     const fontButton=document.createElement('button');fontButton.id='readerFontButton';
     fontButton.type='button';fontButton.textContent='Font';
