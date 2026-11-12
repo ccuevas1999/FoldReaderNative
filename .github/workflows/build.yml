@@ -44,6 +44,8 @@ jobs:
           cp native-patches/v10.js project/FoldReaderNative/app/src/main/assets/v10.js
           cp native-patches/v10.css project/FoldReaderNative/app/src/main/assets/v10.css
           cp native-patches/v11.js project/FoldReaderNative/app/src/main/assets/v11.js
+          cp native-patches/v12.js project/FoldReaderNative/app/src/main/assets/v12.js
+          cp native-patches/v12.css project/FoldReaderNative/app/src/main/assets/v12.css
           python - <<'PYCODE'
           from pathlib import Path
           p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
@@ -55,16 +57,35 @@ jobs:
               html=html.replace('</body></html>', '<script src="v10.js"></script><script src="v11.js"></script></body></html>',1)
           elif 'v11.js' not in html:
               html=html.replace('<script src="v10.js"></script>', '<script src="v10.js"></script><script src="v11.js"></script>',1)
+          if 'v12.css' not in html:
+              html=html.replace('</head>', '<link rel="stylesheet" href="v12.css"></head>',1)
+          if 'v12.js' not in html:
+              html=html.replace('</body></html>', '<script src="v12.js"></script></body></html>',1)
           p.write_text(html)
           PYCODE
           python native-patches/generate_sound.py project/FoldReaderNative/app/src/main/assets/page_turn.wav
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode"/' project/FoldReaderNative/app/src/main/AndroidManifest.xml
           echo 'dependencies { implementation("androidx.webkit:webkit:1.12.1") }' >> project/FoldReaderNative/app/build.gradle.kts
+          cat native-patches/stable-signing.gradle.kts >> project/FoldReaderNative/app/build.gradle.kts
+      - name: Configure permanent APK signing when GitHub secrets are present
+        env:
+          KEYSTORE_B64: ${{ secrets.FOLD_READER_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.FOLD_READER_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+            printf '%s' "$KEYSTORE_B64" | base64 -d > project/FoldReaderNative/foldreader.p12
+            chmod 600 project/FoldReaderNative/foldreader.p12
+            echo "FOLD_SIGNING_PATH=$GITHUB_WORKSPACE/project/FoldReaderNative/foldreader.p12" >> "$GITHUB_ENV"
+            echo "FOLD_SIGNING_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "FOLD_SIGNING_STATUS=stable" >> "$GITHUB_ENV"
+          else
+            echo "FOLD_SIGNING_STATUS=temporary" >> "$GITHUB_ENV"
+          fi
       - name: Build debug APK
         working-directory: project/FoldReaderNative
         run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: FoldReader-Native-APK
+          name: ${{ env.FOLD_SIGNING_STATUS == 'stable' && 'FoldReader-Stable-Updateable-APK' || 'FoldReader-Temporary-Test-APK' }}
           path: project/FoldReaderNative/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
