@@ -138,12 +138,12 @@
   }
   applyFont();
   // Native Page settings can reuse the existing validated EPUB/Docs font handling.
-  window.foldSetFontChoice=function(next){
+  window.foldSetFontChoice=function(next,silent=false){
     if(next!=='Original' && !(next in chosenFonts))return;
     fontChoice=next;
     localStorage.foldFontChoice=fontChoice;
     applyFont();
-    if(bookId>=0)scheduleReflow();
+    if(bookId>=0&&!silent)scheduleReflow();
   };
   window.foldSetEyeComfort=function(value){
     eyeLevel=clamp(Number(value)||0,0,100);
