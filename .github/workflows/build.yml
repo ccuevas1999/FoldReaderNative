@@ -43,6 +43,15 @@ jobs:
           cp native-patches/fold_reader.html project/FoldReaderNative/app/src/main/assets/fold_reader.html
           cp native-patches/v10.js project/FoldReaderNative/app/src/main/assets/v10.js
           cp native-patches/v10.css project/FoldReaderNative/app/src/main/assets/v10.css
+          cp native-patches/v11.js project/FoldReaderNative/app/src/main/assets/v11.js
+          python - <<'PYCODE'
+          from pathlib import Path
+          p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
+          html=p.read_text()
+          assert '<script src="v10.js"></script>' in html
+          html=html.replace('<script src="v10.js"></script>', '<script src="v10.js"></script><script src="v11.js"></script>')
+          p.write_text(html)
+          PYCODE
           python native-patches/generate_sound.py project/FoldReaderNative/app/src/main/assets/page_turn.wav
           sed -i 's/android:name=".MainActivity"/android:name=".MainActivity" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode"/' project/FoldReaderNative/app/src/main/AndroidManifest.xml
           echo 'dependencies { implementation("androidx.webkit:webkit:1.12.1") }' >> project/FoldReaderNative/app/build.gradle.kts
