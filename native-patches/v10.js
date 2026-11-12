@@ -85,6 +85,15 @@
     get('fontUp').disabled = fontScale >= 1.6;
     if(bookId >= 0) scheduleReflow();
   }
+  window.foldSetReaderScale=function(value,silent=false) {
+    const next=Math.round(Math.max(.65,Math.min(1.6,Number(value)||1))*100)/100;
+    fontScale=next;
+    localStorage.foldTextScale=String(next);
+    reader.style.setProperty('--reader-scale',String(next));
+    get('fontDown').disabled=next<=.65;
+    get('fontUp').disabled=next>=1.6;
+    if(bookId>=0&&!silent)scheduleReflow();
+  };
   get('fontDown').onclick = () => changeReaderText(-.05);
   get('fontUp').onclick = () => changeReaderText(.05);
   get('fontDown').disabled = fontScale <= .65;
