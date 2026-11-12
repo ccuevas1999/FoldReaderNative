@@ -13,6 +13,10 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebChromeClient
+import android.webkit.ValueCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import android.app.Activity
 import android.widget.FrameLayout
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
@@ -34,6 +38,15 @@ import java.util.zip.ZipInputStream
 
 class MainActivity : ComponentActivity() {
     private lateinit var reader: WebView
+    private var coverImageCallback: ValueCallback<Array<Uri>>? = null
+    private val coverImageChooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val callback = coverImageCallback
+        coverImageCallback = null
+        val uri = if (result.resultCode == Activity.RESULT_OK)
+            result.data?.data ?: result.data?.clipData?.getItemAt(0)?.uri
+        else null
+        callback?.onReceiveValue(if (uri != null) arrayOf(uri) else null)
+    }
     private lateinit var windowRoot: FrameLayout
     private var readingMode = false
     private var latestInsets: WindowInsetsCompat? = null
@@ -93,6 +106,30 @@ class MainActivity : ComponentActivity() {
             settings.allowContentAccess = false
             settings.setSupportZoom(false)
             addJavascriptInterface(Bridge(), "FoldBridge")
+            // HTML <input type=file accept=image/*> requires a native chooser in Android WebView.
+            webChromeClient = object : WebChromeClient() {
+                override fun onShowFileChooser(
+                    webView: WebView?,
+                    filePathCallback: ValueCallback<Array<Uri>>?,
+                    fileChooserParams: FileChooserParams?
+                ): Boolean {
+                    coverImageCallback?.onReceiveValue(null)
+                    coverImageCallback = filePathCallback
+                    val chooser = Intent(Intent.ACTION_GET_CONTENT).apply {
+                        type = "image/*"
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    return try {
+                        coverImageChooser.launch(Intent.createChooser(chooser, "Choose a book cover"))
+                        true
+                    } catch (e: Exception) {
+                        coverImageCallback?.onReceiveValue(null)
+                        coverImageCallback = null
+                        false
+                    }
+                }
+            }
             webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                     loader.shouldInterceptRequest(request.url)
@@ -237,6 +274,8 @@ class MainActivity : ComponentActivity() {
         }
     }
     override fun onDestroy() {
+        coverImageCallback?.onReceiveValue(null)
+        coverImageCallback = null
         if (::reader.isInitialized) { reader.removeJavascriptInterface("FoldBridge"); reader.destroy() }
         executor.shutdownNow()
         super.onDestroy()
