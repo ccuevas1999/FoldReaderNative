@@ -1,0 +1,41 @@
+/* Fold Reader v13: book-like page margins, subtle controls, fold-safe toolbars. */
+html,body,#read { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+#animation { display:none!important; }
+#glassTop,#glassBottom {
+  background:rgba(9,9,10,.81)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(1.06);
+  backdrop-filter:blur(14px) saturate(1.06);
+}
+/* Native WindowInsets already move the WebView inside Android's safe region. */
+#glassTop { top:6px!important; }
+#glassBottom { bottom:9px!important; }
+@media (max-width:600px) and (orientation:portrait) {
+  #glassBottom { bottom:30px!important; }
+}
+#view .pageBody,#measure .pageBody {
+  padding-top:max(35px,calc(var(--pageSafeTop,54px) - 26px))!important;
+  padding-bottom:max(64px,calc(var(--pageSafeBottom,100px) - 40px))!important;
+}
+.book.hasCustomImage .cover>b,
+.book.hasCustomImage>small { display:none!important; }
+.book.hasCustomImage .cover { text-shadow:none; }
+#view .turnSheet { perspective:1400px; transform-style:preserve-3d!important; filter:none!important; }
+#view .turnSheet .frontLeaf,#view .turnSheet .backLeaf {
+  -webkit-backface-visibility:hidden!important;
+  backface-visibility:hidden!important;
+  clip-path:var(--curlOutline,none);
+  border-radius:var(--peelRadius,0px);
+}
+#view .turnSheet .frontLeaf::before,#view .turnSheet .backLeaf::before {
+  opacity:var(--peelOpacity,0);
+  background:linear-gradient(var(--peelAngle,90deg),
+    transparent 18%,rgba(255,255,255,.18) 45%,
+    rgba(255,255,255,.42) 68%,rgba(40,40,40,.32) 87%,
+    rgba(255,255,255,.65) 99%);
+}
+#view .turnSheet .frontLeaf::after,#view .turnSheet .backLeaf::after {
+  opacity:var(--sheetShade,0);
+  background:linear-gradient(var(--peelAngle,90deg),
+    rgba(0,0,0,.15),transparent 28%,transparent 52%,
+    rgba(0,0,0,.20) 72%,rgba(0,0,0,.65) 94%,rgba(255,255,255,.55));
+}
