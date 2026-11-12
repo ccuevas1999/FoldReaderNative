@@ -60,6 +60,8 @@ jobs:
           cp native-patches/v17.css project/FoldReaderNative/app/src/main/assets/v17.css
           cp native-patches/v18.js project/FoldReaderNative/app/src/main/assets/v18.js
           cp native-patches/v18.css project/FoldReaderNative/app/src/main/assets/v18.css
+          cp native-patches/v19.js project/FoldReaderNative/app/src/main/assets/v19.js
+          cp native-patches/v19.css project/FoldReaderNative/app/src/main/assets/v19.css
           python - <<'PYCODE'
           from pathlib import Path
           p=Path('project/FoldReaderNative/app/src/main/assets/fold_reader.html')
@@ -99,6 +101,10 @@ jobs:
               html=html.replace('</head>', '<link rel="stylesheet" href="v18.css"></head>',1)
           if 'v18.js' not in html:
               html=html.replace('</body></html>', '<script src="v18.js"></script></body></html>',1)
+          if 'v19.css' not in html:
+              html=html.replace('</head>', '<link rel="stylesheet" href="v19.css"></head>',1)
+          if 'v19.js' not in html:
+              html=html.replace('</body></html>', '<script src="v19.js"></script></body></html>',1)
           # Respect forced breaks recognized by the v15 sanitizer and chapter markup.
           before="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';"
           after="for(let b of blocks){if(token!==pagingVersion)throw 'cancel';if(b.tagName==='FOLD-PAGEBREAK'){if([...body.children].some(n=>n.textContent.trim()||n.querySelector('img,table'))){await finish()}else{body.replaceChildren()}continue;}"
