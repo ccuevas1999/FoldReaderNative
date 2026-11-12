@@ -1,0 +1,20 @@
+/* Fold Reader v14: tap-to-view notes and unfolded book margins. */
+#view .pageBody a[data-foldnote]{color:inherit;text-decoration:underline dotted;text-underline-offset:2px;cursor:pointer;padding:0 2px;border-radius:3px;-webkit-tap-highlight-color:rgba(165,135,230,.3)}
+#view .pageBody a[data-foldnote]:focus-visible{outline:2px solid #ac9ce8;outline-offset:2px}
+.foldnote-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.foldnote-head h2{margin:0}
+.foldnote-head button{flex-shrink:0}
+.foldnote-body{color:#f5f4f1;font-size:16px;line-height:1.6;margin-top:15px;max-height:65dvh;overflow-y:auto;overflow-wrap:anywhere}
+.foldnote-body p{margin:0 0 .9em;text-align:left!important}
+.foldnote-body span,.foldnote-body em,.foldnote-body strong{font-size:inherit!important;color:inherit!important}
+.foldnote-body i{font-style:italic}
+@media (orientation:landscape) and (min-width:651px){
+ body:not(.portrait) #view .pageBody,
+ body:not(.portrait) #measure .pageBody{
+ padding-top:calc(max(35px,calc(var(--pageSafeTop,54px) - 26px)) + 3.06em)!important;
+ padding-bottom:max(28px,calc(var(--pageSafeBottom,100px) - 40px - 6.12em))!important;
+ }
+}
+body:not(.portrait) #view::after{content:"";position:absolute;top:0;bottom:0;left:calc(50% - 1px);width:2px;background:linear-gradient(to right,#0002,#0003,#fff3);z-index:7;pointer-events:none}
+#view .turnSheet{transform-style:preserve-3d!important;filter:none!important}
+#view .turnSheet .frontLeaf,#view .turnSheet .backLeaf{backface-visibility:hidden!important;-webkit-backface-visibility:hidden!important}
