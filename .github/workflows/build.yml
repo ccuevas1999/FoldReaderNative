@@ -8,6 +8,7 @@ on:
     paths:
       - 'FoldReaderNative_Ready_for_GitHub.zip'
       - '.github/workflows/build.yml'
+      - 'native-patches/**'
 
 jobs:
   build:
