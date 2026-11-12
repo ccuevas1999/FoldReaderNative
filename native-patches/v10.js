@@ -93,7 +93,7 @@
   // This is a bundled wave file, not a synthetic per-turn sound. Its audio is local and offline.
   const pageSound = new Audio('page_turn.wav');
   pageSound.preload = 'auto';
-  pageSound.volume = .19;
+  pageSound.volume = .095;
   rustle = function() {
     if (!sound) return;
     try { pageSound.pause(); pageSound.currentTime = 0; pageSound.play().catch(() => {}); }
