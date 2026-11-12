@@ -1,0 +1,71 @@
+/* Fold Reader v15: foldable-safe right controls and Liquid Glass overlays. */
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+#glassTop,#glassBottom{
+ background:linear-gradient(155deg,rgba(35,39,47,.57),rgba(1,3,8,.67))!important;
+ backdrop-filter:blur(30px) saturate(1.35)!important;
+ -webkit-backdrop-filter:blur(30px) saturate(1.35)!important;
+ border:1px solid rgba(228,234,245,.19)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.17),inset 0 -1px rgba(0,0,0,.3),0 5px 22px rgba(0,0,0,.19);
+}
+#glassTop button,#glassBottom button{
+ background:rgba(33,38,48,.38)!important;
+ border:1px solid rgba(213,223,244,.20)!important;
+ backdrop-filter:blur(10px);
+ -webkit-backdrop-filter:blur(10px);
+}
+#glassBottom .secondaryControls{justify-content:flex-end!important;gap:5px;flex-wrap:wrap}
+#glassBottom .secondaryControls button{flex:0 1 auto;white-space:nowrap;padding:6px 9px!important}
+#glassBottom .secondaryControls #textSizeButton{margin-right:0}
+#glassBottom .secondaryControls #readerFontButton{min-width:40px}
+#glassBottom .secondaryControls #eyeComfortButton{min-width:56px}
+@media(max-width:400px){
+ #glassBottom .secondaryControls{gap:3px}
+ #glassBottom .secondaryControls button{padding:5px 6px!important;font-size:10px!important}
+}
+#toc{left:auto!important;right:6px!important;border-radius:16px 0 0 16px!important;
+ border-left:1px solid rgba(255,255,255,.23)!important;border-right:0!important;
+ background:linear-gradient(150deg,rgba(19,23,32,.83),rgba(0,0,0,.90))!important;
+ backdrop-filter:blur(30px) saturate(1.2)!important;
+ -webkit-backdrop-filter:blur(30px) saturate(1.2)!important;
+ box-shadow:-10px 4px 28px rgba(0,0,0,.42)!important}
+#tocBackdrop{inset:0!important;z-index:14}
+#panel,.panel{backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+/* Closing a central page gap: draw the connected book gutter above the moving sheet. */
+body:not(.portrait) #view::after{
+ content:'';position:absolute;left:calc(50% - 3px);width:6px;top:0;bottom:0;
+ background:linear-gradient(90deg,var(--paper) 0%,rgba(0,0,0,.11) 41%,rgba(0,0,0,.17) 55%,var(--paper) 100%);
+ box-shadow:0 0 1px var(--paper);pointer-events:none;z-index:14;
+}
+body.portrait #view::after{display:none!important}
+#view .turnSheet .leaf{transform-style:preserve-3d!important;clip-path:var(--curlOutline,none)}
+#view .turnSheet .frontLeaf,#view .turnSheet .backLeaf{
+ backface-visibility:hidden!important;-webkit-backface-visibility:hidden!important;
+}
+#view .turnSheet .frontLeaf::before,#view .turnSheet .backLeaf::before{
+ background:linear-gradient(var(--peelAngle,90deg),transparent 18%,rgba(255,255,255,.12) 44%,rgba(255,255,255,.55) 70%,rgba(0,0,0,.54) 95%,rgba(255,255,255,.63) 99%)!important;
+}
+/* Active chapter progress is on the page, never on the control bar. */
+.chapterCompletion{position:absolute;right:14px;bottom:12px;font:11px/1.2 system-ui,Arial,sans-serif;
+ opacity:.65;color:var(--ink);background:transparent;letter-spacing:.01em;pointer-events:none;z-index:3}
+#read:not(.hideHud) .chapterCompletion{
+ bottom:max(36px,calc(var(--pageSafeBottom,110px) - 12px));
+}
+#read.hideHud .chapterCompletion{bottom:14px}
+#read[data-paper=dark]{--paper:#000;--ink:#fafaf7;--paper-border:#161616}
+#read[data-paper=dark] .leaf,#read[data-paper=dark] .pageBody{background:var(--paper)!important;color:var(--ink)!important}
+#read[data-paper=dark] .pageBody *{color:var(--ink)!important}
+#read[data-paper=dark] .pageBody a[data-foldnote]{color:#75b1ff!important}
+#read .pageBody a[data-foldnote]{color:#1b72e8!important;text-decoration:underline dotted;text-underline-offset:2px}
+#read[data-font-choice=custom] .pageBody,#read[data-font-choice=custom] .pageBody *{
+ font-family:var(--selectedReaderFont)!important;
+}
+.foldnote-body,.foldnote-body p,.foldnote-body span{
+ font-family:var(--noteFont,Georgia,serif)!important;
+ font-size:var(--noteSize,16px)!important;
+ line-height:1.55!important;
+}
+.foldnote-body b,.foldnote-body strong{font-weight:700!important}
+.foldnote-body i,.foldnote-body em{font-style:italic!important}
+#read[data-font-choice=custom] .foldnote-body,#read[data-font-choice=custom] .foldnote-body *{
+ font-family:var(--selectedReaderFont)!important;
+}
