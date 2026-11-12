@@ -38,6 +38,19 @@ import java.util.zip.ZipInputStream
 
 class MainActivity : ComponentActivity() {
     private lateinit var reader: WebView
+    private val localImporter by lazy { LocalImporter(this) }
+    private val localFilePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) executor.execute {
+            try {
+                val result = localImporter.importFile(uri)
+                mainThread.post { if (::reader.isInitialized) reader.evaluateJavascript(
+                    "window.foldLocalImported(" + result.toString() + ");", null) }
+            } catch(e: Exception) {
+                mainThread.post { if (::reader.isInitialized) reader.evaluateJavascript(
+                    "window.foldLocalImportFailed(" + JSONObject.quote(e.message ?: "Import failed") + ");", null) }
+            }
+        }
+    }
     private var coverImageCallback: ValueCallback<Array<Uri>>? = null
     private val coverImageChooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val callback = coverImageCallback
@@ -96,6 +109,12 @@ class MainActivity : ComponentActivity() {
                     if (!file.isFile) return null
                     return WebResourceResponse("text/html", "UTF-8", file.inputStream())
                 }
+            })
+            .addPathHandler("/pdf/", object : WebViewAssetLoader.PathHandler {
+                override fun handle(path: String): WebResourceResponse? = localImporter.pdfPage(path)
+            })
+            .addPathHandler("/epub/", object : WebViewAssetLoader.PathHandler {
+                override fun handle(path: String): WebResourceResponse? = localImporter.epubImage(path)
             }).build()
         reader = WebView(this).apply {
             setBackgroundColor(Color.BLACK)
@@ -235,6 +254,16 @@ class MainActivity : ComponentActivity() {
         }
     }
     inner class Bridge {
+        @JavascriptInterface fun chooseBookFile() {
+            mainThread.post {
+                try { localFilePicker.launch(arrayOf("application/pdf","application/epub+zip","application/octet-stream")) }
+                catch (e:Exception) {
+                    if (::reader.isInitialized) reader.evaluateJavascript(
+                        "window.foldLocalImportFailed(" + JSONObject.quote(e.message ?: "File picker unavailable") + ");",null)
+                }
+            }
+        }
+
         @JavascriptInterface fun importDocument(id: String) {
             if (!validId.matches(id)) { notifyImport(id,false,"Invalid document ID"); return }
             executor.execute {
