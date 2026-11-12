@@ -22,7 +22,24 @@
   object-fit:contain!important;width:auto!important;height:auto!important;margin:auto!important;
 }
 /* PDF's source typography is fixed; zoom/scroll stays inside the same gutters. */
-#read[data-book-type=pdf] #view .pageBody{padding:52px 7.3% 46px!important}
+#read[data-book-type=pdf] #view .pageBody{
+  padding-top:max(52px,calc(var(--pageSafeTop,62px) - 10px))!important;
+  padding-right:7.3%!important;padding-bottom:42px!important;padding-left:7.3%!important;
+}
+@media (orientation:landscape) and (min-width:651px){
+  body:not(.portrait) #read[data-book-type=pdf] #view .pageBody {
+    padding-top:calc(max(35px,calc(var(--pageSafeTop,54px) - 26px)) + 1.53em)!important;
+  }
+}
+@media (orientation:portrait) and (max-width:500px) {
+  #read[data-book-type=pdf] #view .pageBody {
+    padding-left:9%!important;padding-right:9%!important;
+  }
+  #read[data-book-type=epub] #view .pageBody,
+  #measure[data-book-type=epub] .pageBody{
+    padding-left:9%!important;padding-right:9%!important;
+  }
+}
 #read[data-book-type=pdf] .pdfPage{width:100%;height:100%;overflow:auto;overscroll-behavior:contain}
 #read[data-book-type=pdf] .pdfImage{object-fit:contain;max-width:none!important;
   max-height:none!important;width:calc(100% * var(--pdfZoom,1))!important;
