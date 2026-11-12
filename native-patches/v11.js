@@ -33,6 +33,19 @@
       document.getElementById('sizeClose').onclick=hidePanel;
     });
   }
+  // Keep the turn animation light while making the free corner visibly rounder.
+  const style = document.createElement('style');
+  style.textContent = `
+    #textSizeButton { min-width:64px; }
+    .readerSizeControls { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:22px 0; }
+    .readerSizeControls button { font-size:17px; min-width:56px; padding:12px 10px; }
+    .readerSizeControls strong { font-size:19px; font-variant-numeric:tabular-nums; }
+    #view .turnSheet .leaf { clip-path:var(--curlOutline,none); }
+    #view .turnSheet .leaf::before { background:linear-gradient(var(--peelAngle,90deg),transparent 22%,#fff5 60%,#1b121277 85%,#fff9 98%); }
+    #view .turnSheet .leaf::after { background:linear-gradient(var(--peelAngle,90deg),#0004,transparent 23%,transparent 58%,#0009 96%,#fff8 100%); }
+    @media(max-width:385px) { #textSizeButton { padding:4px 6px; } }
+  `;
+  document.head.appendChild(style);
   // The turning layer gets a soft corner cut and lift; source pages stay unchanged.
   visual = function(d, progress) {
     const q = Math.max(0, Math.min(1,progress));
